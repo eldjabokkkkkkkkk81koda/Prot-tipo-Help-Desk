@@ -1,20 +1,28 @@
 import { useState } from 'react';
 import { Ticket, User } from '../types';
-import { Clock, CheckCircle2, CircleDashed, AlertCircle, Inbox } from 'lucide-react';
+import { Clock, CheckCircle2, CircleDashed, AlertCircle, Inbox, Trash2, ListFilter, CheckSquare } from 'lucide-react';
 
 interface DashboardProps {
   tickets: Ticket[];
   users: User[];
   currentUser: User;
   onViewTicket: (id: string) => void;
+  onDeleteTicket: (id: string) => void;
 }
 
-export default function Dashboard({ tickets, users, currentUser, onViewTicket }: DashboardProps) {
+export default function Dashboard({ tickets, users, currentUser, onViewTicket, onDeleteTicket }: DashboardProps) {
   const [filter, setFilter] = useState<'all' | 'open' | 'in_progress' | 'resolved'>('all');
+  const [itTab, setItTab] = useState<'active' | 'resolved'>('active');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const viewableTickets = currentUser.role === 'admin' 
-    ? tickets 
-    : tickets.filter(t => t.authorId === currentUser.id);
+  const isAdmin = currentUser.role === 'admin';
+
+  let viewableTickets = tickets;
+  if (isAdmin) {
+    viewableTickets = tickets.filter(t => itTab === 'active' ? t.status !== 'resolved' : t.status === 'resolved');
+  } else {
+    viewableTickets = tickets.filter(t => t.authorId === currentUser.id);
+  }
 
   const filteredTickets = viewableTickets.filter(t => filter === 'all' ? true : t.status === filter);
 
@@ -22,11 +30,12 @@ export default function Dashboard({ tickets, users, currentUser, onViewTicket }:
   const sortedTickets = [...filteredTickets].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // Stats
+  const baseTicketsForStats = isAdmin ? tickets : viewableTickets;
   const stats = {
-    total: viewableTickets.length,
-    open: viewableTickets.filter(t => t.status === 'open').length,
-    inProgress: viewableTickets.filter(t => t.status === 'in_progress').length,
-    resolved: viewableTickets.filter(t => t.status === 'resolved').length,
+    total: baseTicketsForStats.length,
+    open: baseTicketsForStats.filter(t => t.status === 'open').length,
+    inProgress: baseTicketsForStats.filter(t => t.status === 'in_progress').length,
+    resolved: baseTicketsForStats.filter(t => t.status === 'resolved').length,
   };
 
   const StatusIcon = ({ status }: { status: Ticket['status'] }) => {
@@ -73,15 +82,32 @@ export default function Dashboard({ tickets, users, currentUser, onViewTicket }:
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800">
-            {currentUser.role === 'admin' ? 'Fila de Atendimento TI' : 'Meus Chamados'}
+            {isAdmin ? 'Painel de Suporte TI' : 'Meus Chamados'}
           </h1>
           <p className="text-slate-500 mt-1 font-medium">
-            {currentUser.role === 'admin' 
+            {isAdmin 
               ? 'Visão geral de todos os chamados da empresa.' 
               : 'Acompanhe os tickets que você abriu para a equipe de TI.'}
           </p>
         </div>
       </div>
+
+      {isAdmin && (
+        <div className="flex bg-slate-200/50 p-1 rounded-xl w-full sm:w-fit">
+          <button
+            onClick={() => setItTab('active')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${itTab === 'active' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <ListFilter className="w-4 h-4" /> Filas Ativas
+          </button>
+          <button
+            onClick={() => setItTab('resolved')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${itTab === 'resolved' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <CheckSquare className="w-4 h-4" /> Concluídos
+          </button>
+        </div>
+      )}
 
       {/* Estatísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -153,8 +179,26 @@ export default function Dashboard({ tickets, users, currentUser, onViewTicket }:
                   </div>
                 </div>
 
-                <div className="flex items-center lg:justify-end">
+                <div className="flex items-center lg:justify-end gap-3 shrink-0 mt-3 lg:mt-0">
                   <StatusBadge status={ticket.status} />
+                  {confirmDeleteId === ticket.id ? (
+                    <div className="flex items-center gap-2 bg-red-50 px-3 py-1 rounded-lg border border-red-200">
+                      <span className="text-xs font-bold text-red-600 uppercase">Apagar?</span>
+                      <button onClick={(e) => { e.stopPropagation(); onDeleteTicket(ticket.id); }} className="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded hover:bg-red-700">Sim</button>
+                      <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }} className="text-xs font-bold text-slate-600 bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-100">Não</button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDeleteId(ticket.id);
+                      }}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                      title="Excluir chamado"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
             );

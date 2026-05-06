@@ -80,6 +80,15 @@ function Workspace({
     setCurrentView('detail');
   };
 
+  const handleDeleteTicket = (ticketId: string) => {
+    setTickets((prev: Ticket[]) => prev.filter(t => t.id !== ticketId));
+    setComments((prev: Comment[]) => prev.filter(c => c.ticketId !== ticketId));
+    if (selectedTicketId === ticketId) {
+      setCurrentView('dashboard');
+      setSelectedTicketId(null);
+    }
+  };
+
   const selectedTicket = tickets.find((t: Ticket) => t.id === selectedTicketId);
 
   return (
@@ -93,6 +102,7 @@ function Workspace({
             users={mockUsers}
             currentUser={currentUser}
             onViewTicket={navigateToDetail} 
+            onDeleteTicket={handleDeleteTicket}
           />
         )}
         
@@ -112,6 +122,7 @@ function Workspace({
             onUpdateStatus={handleUpdateTicketStatus}
             onAddComment={handleAddComment}
             onBack={() => setCurrentView('dashboard')}
+            onDelete={() => handleDeleteTicket(selectedTicket.id)}
           />
         )}
       </main>

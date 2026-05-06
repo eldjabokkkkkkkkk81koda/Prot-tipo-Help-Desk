@@ -30,7 +30,7 @@ export default function Login() {
               to="/ti"
               className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-purple-500 hover:bg-purple-50 transition-all font-medium text-slate-700 hover:text-purple-700 shadow-sm group"
             >
-              <span>Acessar Painel (Carlos Tech)</span>
+              <span>Acessar Painel (João Vitor)</span>
               <span className="text-xs bg-white text-purple-700 px-3 py-1.5 rounded-lg shadow-sm border border-purple-100 group-hover:bg-purple-600 group-hover:text-white transition-colors">Entrar →</span>
             </Link>
           </div>

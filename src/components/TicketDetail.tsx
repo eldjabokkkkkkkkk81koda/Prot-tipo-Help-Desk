@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Ticket, Comment, User } from '../types';
-import { ArrowLeft, Send, AlignLeft, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Send, AlignLeft, ShieldAlert, Trash2 } from 'lucide-react';
 
 interface TicketDetailProps {
   ticket: Ticket;
@@ -10,10 +10,12 @@ interface TicketDetailProps {
   onUpdateStatus: (ticketId: string, status: Ticket['status']) => void;
   onAddComment: (ticketId: string, text: string) => void;
   onBack: () => void;
+  onDelete: () => void;
 }
 
-export default function TicketDetail({ ticket, comments, users, currentUser, onUpdateStatus, onAddComment, onBack }: TicketDetailProps) {
+export default function TicketDetail({ ticket, comments, users, currentUser, onUpdateStatus, onAddComment, onBack, onDelete }: TicketDetailProps) {
   const [newComment, setNewComment] = useState('');
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const author = users.find(u => u.id === ticket.authorId);
@@ -47,12 +49,29 @@ export default function TicketDetail({ ticket, comments, users, currentUser, onU
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
-      <button 
-        onClick={onBack}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold uppercase tracking-wider text-sm"
-      >
-        <ArrowLeft className="w-5 h-5" /> Voltar
-      </button>
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={onBack}
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold uppercase tracking-wider text-sm"
+        >
+          <ArrowLeft className="w-5 h-5" /> Voltar
+        </button>
+
+        {isConfirmingDelete ? (
+          <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 animate-in fade-in">
+            <span className="text-xs font-bold text-red-600 uppercase tracking-wider mr-2">Tem certeza?</span>
+            <button onClick={onDelete} className="text-xs font-bold text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md transition-colors">Sim</button>
+            <button onClick={() => setIsConfirmingDelete(false)} className="text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 px-3 py-1 rounded-md transition-colors">Não</button>
+          </div>
+        ) : (
+          <button 
+            onClick={() => setIsConfirmingDelete(true)}
+            className="flex items-center gap-2 text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors font-bold uppercase tracking-wider text-xs"
+          >
+            <Trash2 className="w-4 h-4" /> Apagar Chamado
+          </button>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main Content (Left) */}

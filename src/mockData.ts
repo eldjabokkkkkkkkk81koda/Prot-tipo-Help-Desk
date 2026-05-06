@@ -3,7 +3,7 @@ import { User, Ticket, Comment } from './types';
 export const mockUsers: User[] = [
   { id: 'u1', name: 'João Silva', role: 'user' },
   { id: 'u2', name: 'Maria Souza', role: 'user' },
-  { id: 'u3', name: 'Carlos Tech', role: 'admin' },
+  { id: 'u3', name: 'João Vitor', role: 'admin' },
 ];
 
 export const mockTickets: Ticket[] = [
